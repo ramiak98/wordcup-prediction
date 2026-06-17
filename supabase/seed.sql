@@ -1,0 +1,73 @@
+insert into scoring_rules (rule_key, points) values
+  ('correct_qualified_team', 3),
+  ('correct_group_winner', 5),
+  ('correct_group_runner_up', 3),
+  ('correct_third_place_qualifier', 2),
+  ('correct_finalist', 8),
+  ('correct_champion', 15)
+on conflict (rule_key) do update set points = excluded.points;
+
+insert into actual_results (results)
+select '{
+  "groupWinners": {},
+  "groupRunnerUps": {},
+  "thirdPlaceQualifiers": [],
+  "finalists": [],
+  "champion": ""
+}'::jsonb
+where not exists (select 1 from actual_results);
+
+insert into teams (id, name, code, group_letter, flag_url) values
+  ('mexico', 'Mexico', 'MEX', 'A', 'https://flagcdn.com/mx.svg'),
+  ('south-africa', 'South Africa', 'RSA', 'A', 'https://flagcdn.com/za.svg'),
+  ('korea-republic', 'Korea Republic', 'KOR', 'A', 'https://flagcdn.com/kr.svg'),
+  ('czechia', 'Czechia', 'CZE', 'A', 'https://flagcdn.com/cz.svg'),
+  ('canada', 'Canada', 'CAN', 'B', 'https://flagcdn.com/ca.svg'),
+  ('qatar', 'Qatar', 'QAT', 'B', 'https://flagcdn.com/qa.svg'),
+  ('switzerland', 'Switzerland', 'SUI', 'B', 'https://flagcdn.com/ch.svg'),
+  ('bosnia-herzegovina', 'Bosnia and Herzegovina', 'BIH', 'B', 'https://flagcdn.com/ba.svg'),
+  ('brazil', 'Brazil', 'BRA', 'C', 'https://flagcdn.com/br.svg'),
+  ('morocco', 'Morocco', 'MAR', 'C', 'https://flagcdn.com/ma.svg'),
+  ('haiti', 'Haiti', 'HAI', 'C', 'https://flagcdn.com/ht.svg'),
+  ('scotland', 'Scotland', 'SCO', 'C', 'https://flagcdn.com/gb-sct.svg'),
+  ('usa', 'United States', 'USA', 'D', 'https://flagcdn.com/us.svg'),
+  ('paraguay', 'Paraguay', 'PAR', 'D', 'https://flagcdn.com/py.svg'),
+  ('australia', 'Australia', 'AUS', 'D', 'https://flagcdn.com/au.svg'),
+  ('turkiye', 'Turkiye', 'TUR', 'D', 'https://flagcdn.com/tr.svg'),
+  ('germany', 'Germany', 'GER', 'E', 'https://flagcdn.com/de.svg'),
+  ('curacao', 'Curacao', 'CUW', 'E', 'https://flagcdn.com/cw.svg'),
+  ('cote-divoire', 'Cote d''Ivoire', 'CIV', 'E', 'https://flagcdn.com/ci.svg'),
+  ('ecuador', 'Ecuador', 'ECU', 'E', 'https://flagcdn.com/ec.svg'),
+  ('netherlands', 'Netherlands', 'NED', 'F', 'https://flagcdn.com/nl.svg'),
+  ('japan', 'Japan', 'JPN', 'F', 'https://flagcdn.com/jp.svg'),
+  ('sweden', 'Sweden', 'SWE', 'F', 'https://flagcdn.com/se.svg'),
+  ('tunisia', 'Tunisia', 'TUN', 'F', 'https://flagcdn.com/tn.svg'),
+  ('belgium', 'Belgium', 'BEL', 'G', 'https://flagcdn.com/be.svg'),
+  ('egypt', 'Egypt', 'EGY', 'G', 'https://flagcdn.com/eg.svg'),
+  ('iran', 'IR Iran', 'IRN', 'G', 'https://flagcdn.com/ir.svg'),
+  ('new-zealand', 'New Zealand', 'NZL', 'G', 'https://flagcdn.com/nz.svg'),
+  ('spain', 'Spain', 'ESP', 'H', 'https://flagcdn.com/es.svg'),
+  ('cabo-verde', 'Cabo Verde', 'CPV', 'H', 'https://flagcdn.com/cv.svg'),
+  ('saudi-arabia', 'Saudi Arabia', 'KSA', 'H', 'https://flagcdn.com/sa.svg'),
+  ('uruguay', 'Uruguay', 'URU', 'H', 'https://flagcdn.com/uy.svg'),
+  ('france', 'France', 'FRA', 'I', 'https://flagcdn.com/fr.svg'),
+  ('senegal', 'Senegal', 'SEN', 'I', 'https://flagcdn.com/sn.svg'),
+  ('iraq', 'Iraq', 'IRQ', 'I', 'https://flagcdn.com/iq.svg'),
+  ('norway', 'Norway', 'NOR', 'I', 'https://flagcdn.com/no.svg'),
+  ('argentina', 'Argentina', 'ARG', 'J', 'https://flagcdn.com/ar.svg'),
+  ('algeria', 'Algeria', 'ALG', 'J', 'https://flagcdn.com/dz.svg'),
+  ('austria', 'Austria', 'AUT', 'J', 'https://flagcdn.com/at.svg'),
+  ('jordan', 'Jordan', 'JOR', 'J', 'https://flagcdn.com/jo.svg'),
+  ('portugal', 'Portugal', 'POR', 'K', 'https://flagcdn.com/pt.svg'),
+  ('congo-dr', 'Congo DR', 'COD', 'K', 'https://flagcdn.com/cd.svg'),
+  ('uzbekistan', 'Uzbekistan', 'UZB', 'K', 'https://flagcdn.com/uz.svg'),
+  ('colombia', 'Colombia', 'COL', 'K', 'https://flagcdn.com/co.svg'),
+  ('england', 'England', 'ENG', 'L', 'https://flagcdn.com/gb-eng.svg'),
+  ('croatia', 'Croatia', 'CRO', 'L', 'https://flagcdn.com/hr.svg'),
+  ('ghana', 'Ghana', 'GHA', 'L', 'https://flagcdn.com/gh.svg'),
+  ('panama', 'Panama', 'PAN', 'L', 'https://flagcdn.com/pa.svg')
+on conflict (id) do update set
+  name = excluded.name,
+  code = excluded.code,
+  group_letter = excluded.group_letter,
+  flag_url = excluded.flag_url;
