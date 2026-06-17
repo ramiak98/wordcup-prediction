@@ -12,6 +12,12 @@ export function getSupabaseAdmin() {
     throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
   }
 
+  if (key.startsWith("sb_publishable_")) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY is set to a publishable key. Use the Supabase service_role key or secret key in Vercel."
+    );
+  }
+
   if (!cachedClient) {
     cachedClient = createClient(url, key, {
       auth: {
