@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import { Download, Link2 } from "lucide-react";
+import { useState } from "react";
+import { Bookmark, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PredictionPayload, Team } from "@/lib/types";
@@ -22,21 +21,8 @@ export function ShareCard({
   teams,
   shareUrl
 }: ShareCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const qualifiedCount = qualifiedTeamIds(prediction).length;
-
-  async function downloadCard() {
-    if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, {
-      backgroundColor: "#f6faff",
-      scale: 2
-    });
-    const link = document.createElement("a");
-    link.download = "world-cup-prediction.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  }
 
   async function copyLink() {
     await navigator.clipboard.writeText(shareUrl);
@@ -46,10 +32,7 @@ export function ShareCard({
 
   return (
     <div className="space-y-4">
-      <div
-        ref={cardRef}
-        className="overflow-hidden rounded-lg border bg-white text-[hsl(var(--foreground))] shadow-soft"
-      >
+      <div className="overflow-hidden rounded-lg border bg-white text-[hsl(var(--foreground))] shadow-soft">
         <div className="wc-stripe h-2" />
         <div className="wc-panel-dark p-5 text-white">
           <div className="mb-5 flex items-start justify-between gap-4">
@@ -90,15 +73,19 @@ export function ShareCard({
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button type="button" onClick={copyLink} variant="outline">
-          <Link2 className="h-4 w-4" />
-          {copied ? "Copied" : "Copy share link"}
+      <div className="space-y-2">
+        <Button type="button" onClick={copyLink} className="w-full">
+          {copied ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Bookmark className="h-4 w-4" />
+          )}
+          {copied ? "Link saved to clipboard" : "Save this link to save your results"}
         </Button>
-        <Button type="button" onClick={downloadCard}>
-          <Download className="h-4 w-4" />
-          Download card
-        </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          Keep this private link so you can return to your prediction and future
+          rounds.
+        </p>
       </div>
     </div>
   );

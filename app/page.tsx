@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, Medal, ShieldCheck, Trophy } from "lucide-react";
+import { ArrowRight, Medal, ShieldCheck, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -112,17 +112,12 @@ export default async function Home() {
       </section>
 
       <section className="border-y bg-white/95 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2">
           {[
             {
               icon: ShieldCheck,
               title: "No account required",
               text: "A browser token and hashed device signals prevent duplicate votes."
-            },
-            {
-              icon: BarChart3,
-              title: "Admin scoring",
-              text: "Results and scoring rules can change without touching the form."
             },
             {
               icon: Trophy,

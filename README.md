@@ -16,7 +16,7 @@ A mobile-first Next.js app for collecting one World Cup 2026 group-stage predict
 
 - `/` landing page with `Start Prediction`
 - `/predict` multistep group-stage prediction flow with local draft saving
-- `/prediction/[id]` public thank-you summary, share link, and downloadable image card
+- `/prediction/[id]` public thank-you summary with a reusable prediction link
 - `/admin` password-gated dashboard
 - `/admin/votes` search, team filter, full prediction view, delete, CSV export
 - `/admin/results` group-stage actual results entry with automatic point recalculation

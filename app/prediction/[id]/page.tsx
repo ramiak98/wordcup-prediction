@@ -59,7 +59,7 @@ export default async function PredictionPage({
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.3fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Shareable card</CardTitle>
+              <CardTitle>Save your prediction</CardTitle>
             </CardHeader>
             <CardContent>
               <ShareCard
