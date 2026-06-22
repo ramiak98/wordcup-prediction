@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { createPredictionSchema } from "@/lib/validation";
-import { getRequestIp, hashIp, hashUserAgent, createFallbackToken } from "@/lib/security";
+import { getRequestIp, hashIp, hashUserAgent } from "@/lib/security";
+import { findPredictionByVoteToken } from "@/lib/prediction-duplicates";
 import { loadActualResults, loadScoringRules, scorePrediction } from "@/lib/scoring";
 import { defaultScoringRules } from "@/lib/world-cup";
 import type { PredictionPayload } from "@/lib/types";
@@ -37,25 +38,19 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = getSupabaseAdmin();
-    const voteToken = parsed.data.vote_token || createFallbackToken();
+    const voteToken = parsed.data.vote_token;
     const ipHash = hashIp(getRequestIp(request));
     const userAgentHash = hashUserAgent(request.headers.get("user-agent"));
 
-    const duplicateExpression = `vote_token.eq.${voteToken},and(ip_hash.eq.${ipHash},user_agent_hash.eq.${userAgentHash})`;
-    const { data: existing, error: duplicateError } = await supabase
-      .from("users_predictions")
-      .select("id")
-      .or(duplicateExpression)
-      .limit(1);
+    const { data: existing, error: duplicateError } =
+      await findPredictionByVoteToken(supabase, voteToken);
 
     if (duplicateError) throw duplicateError;
 
     if (existing?.length) {
       return NextResponse.json(
         {
-          error:
-            "A prediction has already been submitted from this browser or device.",
-          predictionId: existing[0].id
+          error: "This browser has already submitted a prediction."
         },
         { status: 409 }
       );
@@ -76,7 +71,13 @@ export async function POST(request: NextRequest) {
       .select("id")
       .single();
 
-    if (error) throw error;
+    if (error?.code === "23505") {
+      return NextResponse.json(
+        { error: "This browser has already submitted a prediction." },
+        { status: 409 }
+      );
+    }
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({ id: data.id, vote_token: voteToken });
   } catch (error) {

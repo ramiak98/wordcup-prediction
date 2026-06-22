@@ -69,6 +69,12 @@ The app uses the service-role key only inside Next.js route handlers. RLS is ena
 
 To update teams or groups, edit the `teams` table. If Supabase is not configured during local UI work, the app falls back to the built-in team seed in `lib/world-cup.ts`.
 
+For an existing deployment created before June 22, 2026, run
+`supabase/migrations/202606220001_fix_prediction_duplicate_identity.sql` in
+the Supabase SQL editor before deploying the matching application update. This
+removes the device-signal uniqueness constraint while retaining those hashes
+for monitoring.
+
 ## Scoring
 
 Default rules seeded in `scoring_rules`:

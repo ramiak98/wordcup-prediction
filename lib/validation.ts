@@ -42,7 +42,10 @@ export const createPredictionSchema = z.object({
     .trim()
     .min(1, "Enter your email address.")
     .email("Enter a valid email address."),
-  vote_token: z.string().trim().min(8).optional(),
+  vote_token: z
+    .string()
+    .trim()
+    .uuid("Refresh the page and try submitting again."),
   predictions: predictionSchema
 });
 

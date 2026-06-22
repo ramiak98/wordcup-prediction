@@ -18,12 +18,17 @@ create table if not exists users_predictions (
   user_agent_hash text not null,
   predictions jsonb not null,
   total_points integer not null default 0,
-  created_at timestamptz not null default now(),
-  constraint users_predictions_device_unique unique (ip_hash, user_agent_hash)
+  created_at timestamptz not null default now()
 );
+
+alter table users_predictions
+  drop constraint if exists users_predictions_device_unique;
 
 create index if not exists users_predictions_created_at_idx
   on users_predictions (created_at desc);
+
+create index if not exists users_predictions_device_signals_idx
+  on users_predictions (ip_hash, user_agent_hash);
 
 create index if not exists users_predictions_full_name_idx
   on users_predictions using gin (to_tsvector('simple', full_name));

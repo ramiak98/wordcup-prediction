@@ -13,6 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { TeamCard } from "@/components/team-card";
 import { PredictionSummary } from "@/components/prediction/prediction-summary";
 import { cn } from "@/lib/utils";
+import {
+  clearLegacyPredictionIdentity,
+  getStoredSubmission,
+  getOrCreateVoteToken,
+  SUBMITTED_PREDICTION_STORAGE_KEY
+} from "@/lib/vote-token";
 
 type Identity = {
   full_name: string;
@@ -43,29 +49,6 @@ function createInitialDraft(): DraftState {
     email: "",
     predictions: emptyPrediction()
   };
-}
-
-async function createVoteToken() {
-  const existing = localStorage.getItem("wc_vote_token");
-  if (existing) return existing;
-
-  const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    screen.width,
-    screen.height,
-    screen.colorDepth
-  ].join("|");
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(fingerprint)
-  );
-  const token = Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-  localStorage.setItem("wc_vote_token", token);
-  return token;
 }
 
 function validateGroupStep(prediction: PredictionPayload) {
@@ -106,10 +89,10 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submittedId, setSubmittedId] = useState<string | null>(() =>
-    typeof window === "undefined"
-      ? null
-      : localStorage.getItem("wc_prediction_submitted_id")
+  const [submitted, setSubmitted] = useState<ReturnType<
+    typeof getStoredSubmission
+  >>(() =>
+    typeof window === "undefined" ? null : getStoredSubmission(localStorage)
   );
   const groupedTeams = useMemo(() => teamsByGroup(teams), [teams]);
   const thirdCandidates = GROUP_LETTERS.map(
@@ -214,7 +197,7 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
 
     setLoading(true);
     try {
-      const voteToken = await createVoteToken();
+      const voteToken = getOrCreateVoteToken(localStorage);
       const response = await fetch("/api/predictions", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -231,15 +214,11 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
       const data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 409 && data.predictionId) {
-          localStorage.setItem("wc_prediction_submitted_id", data.predictionId);
-          window.location.href = `/prediction/${data.predictionId}`;
-          return;
-        }
         throw new Error(data.error ?? "Unable to submit prediction.");
       }
 
-      localStorage.setItem("wc_prediction_submitted_id", data.id);
+      localStorage.setItem(SUBMITTED_PREDICTION_STORAGE_KEY, data.id);
+      clearLegacyPredictionIdentity(localStorage);
       localStorage.removeItem("wc_prediction_draft");
       window.location.href = `/prediction/${data.id}`;
     } catch (submissionError) {
@@ -253,7 +232,7 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
     }
   }
 
-  if (submittedId) {
+  if (submitted) {
     return (
       <Card>
         <CardHeader>
@@ -261,21 +240,29 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Duplicate voting is blocked for this browser and device.
+            {submitted.source === "legacy"
+              ? "This browser has a prediction saved by the previous duplicate-vote system."
+              : "This browser has already submitted a prediction."}
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <a href={`/prediction/${submittedId}`}>View prediction</a>
+              <a href={`/prediction/${submitted.id}`}>View prediction</a>
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={() => {
-                localStorage.removeItem("wc_prediction_submitted_id");
-                setSubmittedId(null);
+                if (submitted.source === "legacy") {
+                  clearLegacyPredictionIdentity(localStorage);
+                } else {
+                  localStorage.removeItem(SUBMITTED_PREDICTION_STORAGE_KEY);
+                }
+                setSubmitted(null);
               }}
             >
-              Admin reset was done
+              {submitted.source === "legacy"
+                ? "This is not my prediction"
+                : "Admin reset was done"}
             </Button>
           </div>
         </CardContent>

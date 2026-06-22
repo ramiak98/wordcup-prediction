@@ -1,4 +1,4 @@
-import { createHmac, randomUUID } from "crypto";
+import { createHmac } from "crypto";
 import { NextRequest } from "next/server";
 
 function hashValue(value: string) {
@@ -52,8 +52,4 @@ export function assertAdmin(request: Request) {
   }
 
   return { ok: true as const };
-}
-
-export function createFallbackToken() {
-  return randomUUID();
 }

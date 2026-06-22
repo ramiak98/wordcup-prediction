@@ -117,7 +117,7 @@ export default async function Home() {
             {
               icon: ShieldCheck,
               title: "No account required",
-              text: "A browser token and hashed device signals prevent duplicate votes."
+              text: "A private random browser key prevents repeat submissions without treating shared networks as one voter."
             },
             {
               icon: Trophy,
