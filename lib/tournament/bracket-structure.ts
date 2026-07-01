@@ -135,8 +135,8 @@ export const BRACKET_TOPOLOGY: BracketTopology[] = [
     round: "quarter-finals",
     nextMatch: 101,
     nextSlot: "a",
-    loserNextMatch: 103,
-    loserNextSlot: "a",
+    loserNextMatch: null,
+    loserNextSlot: null,
     feeders: [
       { matchNumber: 89, slot: "a", source: "winner" },
       { matchNumber: 90, slot: "b", source: "winner" }
@@ -147,8 +147,8 @@ export const BRACKET_TOPOLOGY: BracketTopology[] = [
     round: "quarter-finals",
     nextMatch: 101,
     nextSlot: "b",
-    loserNextMatch: 103,
-    loserNextSlot: "b",
+    loserNextMatch: null,
+    loserNextSlot: null,
     feeders: [
       { matchNumber: 93, slot: "a", source: "winner" },
       { matchNumber: 94, slot: "b", source: "winner" }

@@ -92,12 +92,13 @@ export function resolveMatchTeams(
       return picks[String(feederMatchNumber)] ?? feeder.winner ?? null;
     }
 
+    const { teamA, teamB } = resolveMatchTeams(feeder, officialMatches, predictions);
     const feederRound = feeder.round;
     const picks = picksForRound(predictions, feederRound);
     const winner = picks[String(feederMatchNumber)] ?? feeder.winner;
-    if (!winner) return null;
-    if (feeder.team_a === winner) return feeder.team_b;
-    if (feeder.team_b === winner) return feeder.team_a;
+    if (!winner || !teamA || !teamB) return null;
+    if (teamA === winner) return teamB;
+    if (teamB === winner) return teamA;
     return null;
   }
 
