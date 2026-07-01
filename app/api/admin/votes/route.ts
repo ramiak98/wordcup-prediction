@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { assertAdmin } from "@/lib/security";
-import { loadActualResults, loadScoringRules, scoreRows } from "@/lib/scoring";
+import { loadActualResults, loadBracketPrediction, loadMatches, loadScoringRules, scoreRows } from "@/lib/scoring";
 import { defaultScoringRules, qualifiedTeamIds } from "@/lib/world-cup";
 import type { UserPredictionRecord } from "@/lib/types";
 
@@ -71,11 +71,20 @@ export async function GET(request: NextRequest) {
       team ? includesTeam(row, team) : true
     );
 
-    const [results, rules] = await Promise.all([
+    const [results, rules, matches] = await Promise.all([
       loadActualResults().catch(() => null),
-      loadScoringRules().catch(() => defaultScoringRules)
+      loadScoringRules().catch(() => defaultScoringRules),
+      loadMatches().catch(() => [])
     ]);
-    const scoredRows = scoreRows(rows, results, rules);
+
+    const brackets = new Map<string, Awaited<ReturnType<typeof loadBracketPrediction>>>();
+    await Promise.all(
+      rows.map(async (row) => {
+        brackets.set(row.id, await loadBracketPrediction(row.id).catch(() => null));
+      })
+    );
+
+    const scoredRows = scoreRows(rows, results, rules, brackets, matches);
 
     if (format === "csv") {
       return new NextResponse(toCsv(scoredRows), {

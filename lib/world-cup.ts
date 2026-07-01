@@ -58,8 +58,14 @@ export const defaultScoringRules = {
   correct_group_winner: 5,
   correct_group_runner_up: 3,
   correct_third_place_qualifier: 2,
+  correct_round_of_32: 2,
+  correct_round_of_16: 3,
+  correct_quarter_final: 5,
+  correct_semi_final: 7,
+  correct_third_place: 5,
+  correct_final: 10,
   correct_finalist: 8,
-  correct_champion: 15
+  correct_champion: 20
 };
 
 export function teamsByGroup(teams: Team[]) {

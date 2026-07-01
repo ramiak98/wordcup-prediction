@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PredictionSummary } from "@/components/prediction/prediction-summary";
@@ -50,9 +51,17 @@ export default async function PredictionPage({
               Submitted {formatDate(prediction.created_at)}
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/">Back home</Link>
-          </Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button asChild variant="outline">
+              <Link href="/">Back home</Link>
+            </Button>
+            <Button asChild>
+              <Link href={`/prediction/${prediction.id}/bracket`}>
+                Continue to Knockout Stage
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
           </div>
         </header>
 

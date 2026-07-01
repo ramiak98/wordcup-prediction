@@ -72,5 +72,61 @@ alter table users_predictions enable row level security;
 alter table actual_results enable row level security;
 alter table scoring_rules enable row level security;
 
+create table if not exists matches (
+  match_number integer primary key check (match_number between 73 and 104),
+  round text not null check (
+    round in (
+      'round-of-32',
+      'round-of-16',
+      'quarter-finals',
+      'semi-finals',
+      'third-place',
+      'final'
+    )
+  ),
+  team_a text references teams(id) on delete set null,
+  team_b text references teams(id) on delete set null,
+  team_a_label text,
+  team_b_label text,
+  stadium text not null,
+  city text not null,
+  kickoff timestamptz not null,
+  winner text references teams(id) on delete set null,
+  next_match integer references matches(match_number) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists matches_round_idx on matches (round);
+create index if not exists matches_kickoff_idx on matches (kickoff);
+
+create table if not exists bracket_predictions (
+  id uuid primary key default gen_random_uuid(),
+  prediction_id uuid not null unique references users_predictions(id) on delete cascade,
+  round32 jsonb not null default '{}'::jsonb,
+  round16 jsonb not null default '{}'::jsonb,
+  quarter_finals jsonb not null default '{}'::jsonb,
+  semi_finals jsonb not null default '{}'::jsonb,
+  final jsonb not null default '{}'::jsonb,
+  third_place jsonb not null default '{}'::jsonb,
+  champion text references teams(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists bracket_predictions_prediction_id_idx
+  on bracket_predictions (prediction_id);
+
+drop trigger if exists matches_updated_at on matches;
+create trigger matches_updated_at
+before update on matches
+for each row execute procedure set_updated_at();
+
+drop trigger if exists bracket_predictions_updated_at on bracket_predictions;
+create trigger bracket_predictions_updated_at
+before update on bracket_predictions
+for each row execute procedure set_updated_at();
+
+alter table matches enable row level security;
+alter table bracket_predictions enable row level security;
+
 -- The app uses SUPABASE_SERVICE_ROLE_KEY from Next.js route handlers.
 -- No anon policies are required unless you intentionally expose direct client reads.

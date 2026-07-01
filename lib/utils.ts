@@ -12,6 +12,15 @@ export function formatDate(value: string | Date) {
   }).format(new Date(value));
 }
 
+export function formatKickoff(value: string | Date) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+
 export function percentage(value: number, total: number) {
   if (!total) return "0%";
   return `${Math.round((value / total) * 100)}%`;

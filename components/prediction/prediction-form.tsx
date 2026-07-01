@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Loader2, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { GROUP_LETTERS, type GroupLetter, type PredictionPayload, type Team } from "@/lib/types";
 import { teamsByGroup } from "@/lib/world-cup";
 import { Button } from "@/components/ui/button";
@@ -220,7 +220,7 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
       localStorage.setItem(SUBMITTED_PREDICTION_STORAGE_KEY, data.id);
       clearLegacyPredictionIdentity(localStorage);
       localStorage.removeItem("wc_prediction_draft");
-      window.location.href = `/prediction/${data.id}`;
+      window.location.href = `/prediction/${data.id}/bracket`;
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -246,6 +246,9 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild>
+              <a href={`/prediction/${submitted.id}/bracket`}>Continue to Knockout Stage</a>
+            </Button>
+            <Button asChild variant="outline">
               <a href={`/prediction/${submitted.id}`}>View prediction</a>
             </Button>
             <Button
@@ -428,20 +431,12 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
           <PredictionSummary prediction={draft.predictions} teams={teams} />
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LockKeyhole className="h-5 w-5 text-primary" />
-                Knockout rounds locked
-              </CardTitle>
+              <CardTitle>Ready for the Knockout Stage</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Submit your group-stage prediction now. The Round of 32 and later
-                knockout rounds will open after the real qualified teams are known,
-                and this prediction link will bring you back to the next phase.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Your email will be used to notify you when the next prediction
-                window opens.
+                Submit your group-stage prediction, then continue straight into the
+                official Round of 32 bracket. Picks auto-save as you go.
               </p>
               <Button
                 type="button"
@@ -451,7 +446,7 @@ export function PredictionForm({ teams }: { teams: Team[] }) {
                 disabled={loading}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Submit prediction
+                Submit &amp; continue to Knockout Stage
               </Button>
             </CardContent>
           </Card>

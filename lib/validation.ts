@@ -61,3 +61,14 @@ export const scoringRulesSchema = z.record(
   z.string(),
   z.coerce.number().int().min(0).max(100)
 );
+
+export const bracketPickSchema = z.object({
+  prediction_id: z.string().uuid(),
+  match_number: z.coerce.number().int().min(73).max(104),
+  winner_id: z.string().min(1)
+});
+
+export const adminUpdateMatchSchema = z.object({
+  match_number: z.coerce.number().int().min(73).max(104),
+  winner_id: z.string().min(1)
+});

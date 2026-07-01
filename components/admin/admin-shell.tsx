@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useMemo, useState } from "react";
-import { BarChart3, ClipboardList, LogOut, Settings, Trophy } from "lucide-react";
+import { BarChart3, ClipboardList, LogOut, Settings, Swords, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
   { href: "/admin/votes", label: "Votes", icon: ClipboardList },
   { href: "/admin/results", label: "Results", icon: Trophy },
+  { href: "/admin/matches", label: "Matches", icon: Swords },
   { href: "/admin/scoring", label: "Scoring", icon: Settings }
 ];
 

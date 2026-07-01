@@ -5,29 +5,53 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { defaultTeams } from "@/lib/world-cup";
+import {
+  loadActualResults,
+  loadBracketPrediction,
+  loadMatches,
+  loadScoringRules,
+  scoreRows
+} from "@/lib/scoring";
 import { formatDate } from "@/lib/utils";
-
-type PublicLeaderboardEntry = {
-  id: string;
-  full_name: string;
-  total_points: number;
-  created_at: string;
-};
+import type { LeaderboardEntry, UserPredictionRecord } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function getPublicLeaderboard() {
+async function getPublicLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
     const supabase = getSupabaseAdmin();
+    const [results, rules, matches] = await Promise.all([
+      loadActualResults(),
+      loadScoringRules(),
+      loadMatches().catch(() => [])
+    ]);
+
     const { data, error } = await supabase
       .from("users_predictions")
-      .select("id,full_name,total_points,created_at")
+      .select("id,full_name,predictions,total_points,created_at")
       .order("total_points", { ascending: false })
       .order("created_at", { ascending: true })
       .limit(10);
 
     if (error) return [];
-    return (data ?? []) as PublicLeaderboardEntry[];
+
+    const rows = (data ?? []) as UserPredictionRecord[];
+    const brackets = new Map<string, Awaited<ReturnType<typeof loadBracketPrediction>>>();
+
+    await Promise.all(
+      rows.map(async (row) => {
+        brackets.set(row.id, await loadBracketPrediction(row.id).catch(() => null));
+      })
+    );
+
+    return scoreRows(rows, results, rules, brackets, matches).map((row, index) => ({
+      id: row.id,
+      full_name: row.full_name,
+      total_points: row.score.total,
+      rank: index + 1,
+      created_at: row.created_at,
+      breakdown: row.score
+    }));
   } catch {
     return [];
   }
@@ -53,9 +77,8 @@ export default async function Home() {
               World Cup Predictions
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
-              Pick each group winner and runner-up, choose the eight best
-              third-place teams, and keep your link for the later knockout
-              prediction windows. One prediction per browser or device.
+              Predict groups, pick the eight best third-place teams, then fill out
+              the full knockout bracket from the Round of 32 to the Final.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -116,13 +139,13 @@ export default async function Home() {
           {[
             {
               icon: ShieldCheck,
-              title: "No account required",
-              text: "A private random browser key prevents repeat submissions without treating shared networks as one voter."
+              title: "Full tournament bracket",
+              text: "From the Round of 32 through the Final and third-place match, with auto-save after every pick."
             },
             {
               icon: Trophy,
-              title: "Public leaderboard",
-              text: "Everyone can follow the standings as results are updated."
+              title: "Detailed leaderboard",
+              text: "Track group picks, knockout accuracy, champion, and total points."
             }
           ].map((item) => (
             <Card key={item.title} className="shadow-none">
@@ -149,33 +172,62 @@ export default async function Home() {
                   Public leaderboard
                 </CardTitle>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Scores update after admins enter actual results. Contact details
-                  stay private.
+                  Scores update as admins enter group and knockout results.
                 </p>
               </div>
               <Badge variant="secondary">Top 10</Badge>
             </CardHeader>
             <CardContent>
               {leaderboard.length ? (
-                <div className="divide-y rounded-lg border bg-white">
-                  {leaderboard.map((entry, index) => (
-                    <Link
-                      key={entry.id}
-                      href={`/prediction/${entry.id}`}
-                      className="grid gap-3 p-4 transition hover:bg-muted/60 sm:grid-cols-[60px_1fr_auto] sm:items-center"
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-sm font-black text-primary-foreground">
-                        #{index + 1}
-                      </div>
-                      <div>
-                        <p className="font-bold">{entry.full_name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Submitted {formatDate(entry.created_at)}
-                        </p>
-                      </div>
-                      <Badge>{entry.total_points} pts</Badge>
-                    </Link>
-                  ))}
+                <div className="overflow-x-auto rounded-lg border bg-white">
+                  <table className="w-full min-w-[900px] text-left text-sm">
+                    <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr>
+                        <th className="px-3 py-3">Rank</th>
+                        <th className="px-3 py-3">Name</th>
+                        <th className="px-3 py-3">Groups</th>
+                        <th className="px-3 py-3">R32</th>
+                        <th className="px-3 py-3">R16</th>
+                        <th className="px-3 py-3">QF</th>
+                        <th className="px-3 py-3">SF</th>
+                        <th className="px-3 py-3">Final</th>
+                        <th className="px-3 py-3">Champion</th>
+                        <th className="px-3 py-3">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {leaderboard.map((entry) => (
+                        <tr key={entry.id} className="hover:bg-muted/40">
+                          <td className="px-3 py-3 font-bold">#{entry.rank}</td>
+                          <td className="px-3 py-3">
+                            <Link
+                              href={`/prediction/${entry.id}`}
+                              className="font-semibold hover:text-primary"
+                            >
+                              {entry.full_name}
+                            </Link>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(entry.created_at)}
+                            </p>
+                          </td>
+                          <td className="px-3 py-3">
+                            {entry.breakdown.correctGroupWinners +
+                              entry.breakdown.correctRunnerUps +
+                              entry.breakdown.correctThirdPlaceQualifiers}
+                          </td>
+                          <td className="px-3 py-3">{entry.breakdown.correctRoundOf32}</td>
+                          <td className="px-3 py-3">{entry.breakdown.correctRoundOf16}</td>
+                          <td className="px-3 py-3">{entry.breakdown.correctQuarterFinals}</td>
+                          <td className="px-3 py-3">{entry.breakdown.correctSemiFinals}</td>
+                          <td className="px-3 py-3">{entry.breakdown.correctFinal}</td>
+                          <td className="px-3 py-3">{entry.breakdown.correctChampion}</td>
+                          <td className="px-3 py-3">
+                            <Badge>{entry.total_points} pts</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                 <div className="rounded-lg border bg-white p-5 text-sm text-muted-foreground">
