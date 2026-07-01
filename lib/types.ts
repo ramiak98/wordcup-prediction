@@ -78,6 +78,7 @@ export type BracketPredictions = {
   final: Record<string, string>;
   third_place: Record<string, string>;
   champion: string | null;
+  submitted_at?: string | null;
   updated_at?: string;
 };
 

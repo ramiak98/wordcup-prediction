@@ -109,6 +109,7 @@ create table if not exists bracket_predictions (
   final jsonb not null default '{}'::jsonb,
   third_place jsonb not null default '{}'::jsonb,
   champion text references teams(id) on delete set null,
+  submitted_at timestamptz,
   updated_at timestamptz not null default now()
 );
 

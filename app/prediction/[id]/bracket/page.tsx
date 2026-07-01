@@ -70,7 +70,8 @@ export default async function BracketPage({
                 {prediction.full_name}&apos;s Bracket
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Pick winners from the Round of 32 through the Final. Picks auto-save.
+                Pick winners from the Round of 32 through the Final. Picks auto-save,
+                then submit when your bracket is complete.
               </p>
             </div>
             <Button asChild variant="outline">

@@ -183,6 +183,7 @@ export async function loadBracketPrediction(predictionId: string) {
     final: (data.final ?? {}) as Record<string, string>,
     third_place: (data.third_place ?? {}) as Record<string, string>,
     champion: data.champion as string | null,
+    submitted_at: (data.submitted_at as string | null) ?? null,
     updated_at: data.updated_at
   };
 }

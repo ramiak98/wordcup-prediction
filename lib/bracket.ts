@@ -200,6 +200,21 @@ export function bracketProgress(predictions: BracketPredictions) {
   return { groupsDone, rounds, currentRound };
 }
 
+export function isBracketComplete(predictions: BracketPredictions) {
+  for (const entry of BRACKET_TOPOLOGY) {
+    const picks = picksForRound(predictions, entry.round);
+    if (!picks[String(entry.matchNumber)]) return false;
+  }
+  return Boolean(predictions.champion);
+}
+
+export function missingBracketPicks(predictions: BracketPredictions) {
+  return BRACKET_TOPOLOGY.filter((entry) => {
+    const picks = picksForRound(predictions, entry.round);
+    return !picks[String(entry.matchNumber)];
+  }).map((entry) => entry.matchNumber);
+}
+
 export function teamById(teams: Team[], teamId: string | null | undefined) {
   if (!teamId) return null;
   return teams.find((team) => team.id === teamId) ?? null;

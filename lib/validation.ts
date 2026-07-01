@@ -68,6 +68,10 @@ export const bracketPickSchema = z.object({
   winner_id: z.string().min(1)
 });
 
+export const bracketSubmitSchema = z.object({
+  prediction_id: z.string().uuid()
+});
+
 export const adminUpdateMatchSchema = z.object({
   match_number: z.coerce.number().int().min(73).max(104),
   winner_id: z.string().min(1)
